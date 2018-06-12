@@ -8,6 +8,8 @@ settings.json
 *.o
 *.a
 *.so
+*.zip
+aws-go-lambda
 
 # Folders
 _obj
