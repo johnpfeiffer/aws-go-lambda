@@ -38,16 +38,6 @@ func HandleRequest(ctx context.Context, req MyRequest) (MyResponse, error) {
 	return generateResponse(req.Value)
 }
 
-// StartServer with routes from https://pkg.go.dev/net/http#ServeMux
-func StartServer(port string) {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/{path...}", GenericHandler)
-	err := http.ListenAndServe(port, mux)
-	if err != nil {
-		log.Fatalf("failed to start server: %v", err)
-	}
-}
-
 // GenericHandler for HTTP requests
 func GenericHandler(w http.ResponseWriter, r *http.Request) {
 	var req MyRequest
@@ -73,21 +63,30 @@ func GenericHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	// https://github.com/GoogleCloudPlatform/cloud-run-microservice-template-go
-	if os.Getenv("GOOGLE_CLOUD_PROJECT") != "" {
-		port := os.Getenv("PORT")
-		if port == "" {
-			port = ":8080"
-		}
-		if !strings.HasPrefix(port, ":") {
-			port = ":" + port
-		}
-		log.Printf("listening on port %s", port)
-		projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
-		log.Printf("running in Google Cloud Project %s", projectID)
-		StartServer(port)
+	if os.Getenv("AWS_LAMBDA_RUNTIME_API") != "" {
+		lambda.Start(HandleRequest)
+		return
 	}
 
-	// AWS Lambda
-	lambda.Start(HandleRequest)
+	// https://github.com/GoogleCloudPlatform/cloud-run-microservice-template-go
+	if os.Getenv("GOOGLE_CLOUD_PROJECT") != "" {
+		projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
+		log.Printf("running in Google Cloud Project %s", projectID)
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = ":8080"
+	}
+	if !strings.HasPrefix(port, ":") {
+		port = ":" + port
+	}
+	log.Printf("listening on port %s", port)
+	mux := http.NewServeMux() // routes defined as per https://pkg.go.dev/net/http#ServeMux
+	mux.HandleFunc("/{path...}", GenericHandler)
+	err := http.ListenAndServe(port, mux)
+	if err != nil {
+		log.Fatalf("failed to start server: %v", err)
+	}
+
 }

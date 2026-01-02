@@ -13,8 +13,8 @@ Originally from <https://blog.john-pfeiffer.com/go-faas-with-aws-lambda/>
 
 *compiles a binary file "aws-go-lambda" that executes on apple silicon, for linux: GOOS=linux GOARCH=amd64 go build -v*
 
-### To run locally
-`export GOOGLE_CLOUD_PROJECT="example-id"`
+### To run locally on port 8080
+
  `./aws-go-lambda`
 
 # Testing
@@ -34,45 +34,42 @@ Originally from <https://blog.john-pfeiffer.com/go-faas-with-aws-lambda/>
 
 # Deploy
 
-If built into a .zip can be uploaded to AWS S3 and setup in an AWS Lambda
+If built into a .zip that can be uploaded to AWS S3 and used for an AWS Lambda
 
-Otherwise just leverages GitHub and Google Cloud integration to auto deploy
+Otherwise leveraging GitHub and Google Cloud integration to auto deploy
 
 # Architecture
 
 ## Request
 
-+------------------------+      +-------------------------------------------------+
-|        Browser         |      |         Cloud Provider (AWS/Google)             |
-+------------------------+      +-------------------------------------------------+
-| Client sends HTTP POST |      | +------------------+   +----------------------+ |
-| with JSON payload to   |      | | Load Balancer    |-->| Container Runtime    | |
-| public endpoint        |      | +------------------+   | (Fargate/Cloud Run)  | |
-|                        |      |                      |                      | |
-| `POST / HTTP/1.1`      |      |                      | +------------------+ | |
-| `Host: <hostname>`     |----->|                      | | Golang Server    | | |
-| `Content-Type: application/json`|                      | +------------------+ | |
-|                        |      |                      +----------------------+ |
-| `{"value":"world"}`    |      |                                                 |
-+------------------------+      +-------------------------------------------------+
+flowchart LR
+  subgraph B[Browser]
+    C[Client\nHTTP POST\nJSON payload]
+  end
 
+  subgraph CP[Cloud Provider (AWS / Google)]
+    LB[Load Balancer]
+    CR[Container Runtime\n(Fargate / Cloud Run)]
+    LB --> CR
+  end
 
-## Response
+  C --> LB
 
-+------------------------+      +-------------------------------------------------+
-|        Browser         |      |         Cloud Provider (AWS/Google)             |
-+------------------------+      +-------------------------------------------------+
-|                        |      | +------------------+   +----------------------+ |
-|                        |      | | Load Balancer    |<--| Container Runtime    | |
-|                        |      | +------------------+   | (Fargate/Cloud Run)  | |
-|                        |      |                      |                      | |
-| Client receives        |      |                      | +------------------+ | |
-| response               |<-----|                      | | Golang Server    | | |
-|                        |      |                      | +------------------+ | |
-|                        |      |                      +----------------------+ |
-|                        |      |                                                 |
-|                        |      | `HTTP/1.1 200 OK`                               |
-|                        |      | `Content-Type: application/json`                |
-|                        |      |                                                 |
-|                        |      | `{"message":"hi world","created":"..."}`         |
-+------------------------+      +-------------------------------------------------+
+    POST / HTTP/1.1
+    Host: <hostname>
+    Content-Type: application/json
+    {"value":"world"}
+
+flowchart LR
+  subgraph B[Browser]
+    Req[HTTP POST\nJSON payload]
+    Resp[HTTP 200\nJSON response]
+  end
+
+  subgraph CP[Cloud Provider (AWS / Google)]
+    LB[Load Balancer]
+    CR[Container Runtime\nAuth logic\nBusiness logic]
+  end
+
+  Req --> LB --> CR --> LB --> Resp
+
