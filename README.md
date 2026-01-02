@@ -42,6 +42,7 @@ Otherwise leveraging GitHub and Google Cloud integration to auto deploy
 
 ## Request
 
+```mermaid
 flowchart LR
   subgraph B[Browser]
     C[Client\nHTTP POST\nJSON payload]
@@ -54,12 +55,14 @@ flowchart LR
   end
 
   C --> LB
+```
 
     POST / HTTP/1.1
     Host: <hostname>
     Content-Type: application/json
     {"value":"world"}
 
+```mermaid
 flowchart LR
   subgraph B[Browser]
     Req[HTTP POST\nJSON payload]
@@ -72,4 +75,10 @@ flowchart LR
   end
 
   Req --> LB --> CR --> LB --> Resp
+```
 
+<https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams>
+
+```mermaid
+  info
+```
