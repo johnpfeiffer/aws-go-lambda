@@ -42,35 +42,37 @@ Otherwise just leverages GitHub and Google Cloud integration to auto deploy
 
 ## Request
 
-+------------------------+      +---------------------------------------+
-|        Browser         |      |     Cloud Provider (AWS/Google)       |
-+------------------------+      +---------------------------------------+
-| Client sends HTTP POST |      |                                       |
-| with JSON payload to   |      |                                       |
-| public endpoint        |      |                                       |
-|                        |      |                                       |
-| `POST / HTTP/1.1`      |      |                                       |
-| `Host: <hostname>`     |      |                                       |
-| `Content-Type: application/json`   |      |                                       |
-|                        |      |                                       |
-| `{"value":"world"}`    |----->| Golang Server (Cloud Function/Lambda) |
-|                        |      |                                       |
-|                        |      | Processes request, returns a response.|
-+------------------------+      +---------------------------------------+
++------------------------+      +-------------------------------------------------+
+|        Browser         |      |         Cloud Provider (AWS/Google)             |
++------------------------+      +-------------------------------------------------+
+| Client sends HTTP POST |      | +------------------+   +----------------------+ |
+| with JSON payload to   |      | | Load Balancer    |-->| Container Runtime    | |
+| public endpoint        |      | +------------------+   | (Fargate/Cloud Run)  | |
+|                        |      |                      |                      | |
+| `POST / HTTP/1.1`      |      |                      | +------------------+ | |
+| `Host: <hostname>`     |----->|                      | | Golang Server    | | |
+| `Content-Type: application/json`|                      | +------------------+ | |
+|                        |      |                      +----------------------+ |
+| `{"value":"world"}`    |      |                                                 |
++------------------------+      +-------------------------------------------------+
 
 
 ## Response
 
-+------------------------+      +---------------------------------------+
-|        Browser         |      |     Cloud Provider (AWS/Google)       |
-+------------------------+      +---------------------------------------+
-|                        |      | Golang Server (Cloud Function/Lambda) |
-|                        |      |                                       |
-|                        |      | Responds with HTTP 200 OK             |
-|                        |      | and JSON payload.                     |
-|                        |      |                                       |
-| Client receives        |<-----| `HTTP/1.1 200 OK`                     |
-| response               |      | `Content-Type: application/json`      |
-|                        |      |                                       |
-|                        |      | `{"message":"Hello, world!"}`          |
-+------------------------+      +---------------------------------------+
++------------------------+      +-------------------------------------------------+
+|        Browser         |      |         Cloud Provider (AWS/Google)             |
++------------------------+      +-------------------------------------------------+
+|                        |      | +------------------+   +----------------------+ |
+|                        |      | | Load Balancer    |<--| Container Runtime    | |
+|                        |      | +------------------+   | (Fargate/Cloud Run)  | |
+|                        |      |                      |                      | |
+| Client receives        |      |                      | +------------------+ | |
+| response               |<-----|                      | | Golang Server    | | |
+|                        |      |                      | +------------------+ | |
+|                        |      |                      +----------------------+ |
+|                        |      |                                                 |
+|                        |      | `HTTP/1.1 200 OK`                               |
+|                        |      | `Content-Type: application/json`                |
+|                        |      |                                                 |
+|                        |      | `{"message":"hi world","created":"..."}`         |
++------------------------+      +-------------------------------------------------+
