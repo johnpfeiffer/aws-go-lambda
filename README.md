@@ -5,8 +5,6 @@ Originally from <https://blog.john-pfeiffer.com/go-faas-with-aws-lambda/>
 
 # Local Dev
 
-export GOOGLE_CLOUD_PROJECT=<GCP_PROJECT_ID>
-
 ## Build
 
     go mod init github.com/johnpfeiffer/aws-go-lambda
@@ -40,3 +38,41 @@ If built into a .zip can be uploaded to AWS S3 and setup in an AWS Lambda
 
 Otherwise just leverages GitHub and Google Cloud integration to auto deploy
 
+# Architecture
+
+## Request
+
++------------------------+      +-------------------------------------------------+
+|        Browser         |      |         Cloud Provider (AWS/Google)             |
++------------------------+      +-------------------------------------------------+
+| Client sends HTTP POST |      | +------------------+   +----------------------+ |
+| with JSON payload to   |      | | Load Balancer    |-->| Container Runtime    | |
+| public endpoint        |      | +------------------+   | (Fargate/Cloud Run)  | |
+|                        |      |                      |                      | |
+| `POST / HTTP/1.1`      |      |                      | +------------------+ | |
+| `Host: <hostname>`     |----->|                      | | Golang Server    | | |
+| `Content-Type: application/json`|                      | +------------------+ | |
+|                        |      |                      +----------------------+ |
+| `{"value":"world"}`    |      |                                                 |
++------------------------+      +-------------------------------------------------+
+
+
+## Response
+
++------------------------+      +-------------------------------------------------+
+|        Browser         |      |         Cloud Provider (AWS/Google)             |
++------------------------+      +-------------------------------------------------+
+|                        |      | +------------------+   +----------------------+ |
+|                        |      | | Load Balancer    |<--| Container Runtime    | |
+|                        |      | +------------------+   | (Fargate/Cloud Run)  | |
+|                        |      |                      |                      | |
+| Client receives        |      |                      | +------------------+ | |
+| response               |<-----|                      | | Golang Server    | | |
+|                        |      |                      | +------------------+ | |
+|                        |      |                      +----------------------+ |
+|                        |      |                                                 |
+|                        |      | `HTTP/1.1 200 OK`                               |
+|                        |      | `Content-Type: application/json`                |
+|                        |      |                                                 |
+|                        |      | `{"message":"hi world","created":"..."}`         |
++------------------------+      +-------------------------------------------------+
