@@ -44,17 +44,18 @@ Otherwise leveraging GitHub and Google Cloud integration to auto deploy
 
 ```mermaid
 flowchart LR
-  subgraph B[Browser]
-    C[Client\nHTTP POST\nJSON payload]
+  subgraph B["Browser"]
+    Req["HTTP POST with JSON payload"]
+    Resp["HTTP 200 with JSON response"]
   end
 
-  subgraph CP[Cloud Provider (AWS / Google)]
-    LB[Load Balancer]
-    CR[Container Runtime\n(Fargate / Cloud Run)]
-    LB --> CR
+  subgraph CP["Cloud Provider (AWS or Google)"]
+    PE["Provider Edge (TLS, WAF, etc.)"]
+    LB["Layer 7 Router"]
+    CR["Container or Function Runtime (Lambda/Fargate or Cloud Run)"]
   end
 
-  C --> LB
+  Req --> PE --> LB --> CR --> LB --> Resp
 ```
 
     POST / HTTP/1.1
@@ -62,23 +63,10 @@ flowchart LR
     Content-Type: application/json
     {"value":"world"}
 
-```mermaid
-flowchart LR
-  subgraph B[Browser]
-    Req[HTTP POST\nJSON payload]
-    Resp[HTTP 200\nJSON response]
-  end
-
-  subgraph CP[Cloud Provider (AWS / Google)]
-    LB[Load Balancer]
-    CR[Container Runtime\nAuth logic\nBusiness logic]
-  end
-
-  Req --> LB --> CR --> LB --> Resp
-```
 
 <https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams>
 
+Mermaid version:
 ```mermaid
   info
 ```
